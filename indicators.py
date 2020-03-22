@@ -1,5 +1,5 @@
 import talib
-import xml.etree.ElementTree as ET
+from lxml import etree as ET
 import sqlite3 as lite
 import numpy as np
 import pandas as pd
@@ -11,13 +11,19 @@ from scripts import *
 def get_quotes(ticker):
     url = 'http://iss.moex.com/iss/history/engines/stock/markets/shares/boards/tqbr/securities/{}/?from=2019-10-17'.format(ticker)
     r = requests.get(url).text
-    tree = ET.ElementTree(ET.fromstring(r))
+    r = r[r.find('<document'):]
+    root = ET.fromstring(r)
+    rows = root.findall('.//row')
+    close_arr = []
+    trade_date_arr = []
+    for row in rows:
+        close_arr.append(row.attrib['CLOSE'])
+        trade_date_arr.append(row.attrib['TRADEDATE'])
 
-    root = tree.getroot()
-    for child in root:
-        els = child.find('row')
-        print (child.tag, child.attrib)
-    return tree
+    df = pd.DataFrame({'close':close_arr, 'tradedate':trade_date_arr})
+    pass
+
+
 
 def rma(x, n, y0):
     a = (n-1) / n
