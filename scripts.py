@@ -14,3 +14,4 @@ def get_right_path(paths):
         my_file = Path(path)
         if my_file.exists():
             return path
+    return ''

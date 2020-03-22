@@ -1,15 +1,23 @@
 import talib
+import xml.etree.ElementTree as ET
 import sqlite3 as lite
 import numpy as np
 import pandas as pd
 import requests
 import json
 import time
+from scripts import *
 
 def get_quotes(ticker):
     url = 'http://iss.moex.com/iss/history/engines/stock/markets/shares/boards/tqbr/securities/{}/?from=2019-10-17'.format(ticker)
-    r = requests.get(url).text.json()
-    return r
+    r = requests.get(url).text
+    tree = ET.ElementTree(ET.fromstring(r))
+
+    root = tree.getroot()
+    for child in root:
+        els = child.find('row')
+        print (child.tag, child.attrib)
+    return tree
 
 def rma(x, n, y0):
     a = (n-1) / n
@@ -19,8 +27,10 @@ def rma(x, n, y0):
 
 if __name__ == '__main__':
     quotes = get_quotes('SBER')
-
-    db_path = 'C:/kovalenko/scripts/db/ta.db'
+    db_name = 'ta.db'
+    db_path = get_right_path(db_paths)
+    if not db_path: exit(-1)
+    db_path += db_name
     conn = lite.connect(db_path)
     c = conn.cursor()
     n = 14
